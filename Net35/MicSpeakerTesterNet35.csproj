@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{98ED0C6A-67E0-41F8-B7EC-13B6A4530FF2}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>frm_sound_mic_test</RootNamespace>
+    <AssemblyName>MicSpeakerTesterNet35</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <ApplicationIcon>..\Resources\AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\Debug\net35\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\Release\net35\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="1.8.5" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\Services\AudioDeviceService.cs">
+      <Link>Services\AudioDeviceService.cs</Link>
+    </Compile>
+    <Compile Include="..\Services\MicTestService.cs">
+      <Link>Services\MicTestService.cs</Link>
+    </Compile>
+    <Compile Include="..\Services\SpeakerTestService.cs">
+      <Link>Services\SpeakerTestService.cs</Link>
+    </Compile>
+    <EmbeddedResource Include="..\Resources\AppIcon.ico">
+      <Link>Resources\AppIcon.ico</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form1.resx">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!--
+    Single-exe packaging without any IL-merge tool (ILRepack/Costura both risk being flagged as
+    heuristic false positives by some antivirus engines, and Costura needs netstandard2.0 which
+    .NET Framework 3.5 can't load anyway). Instead: embed NAudio.dll as a plain resource straight
+    from the restored NuGet package, and resolve it at runtime via AppDomain.AssemblyResolve
+    (see Program.cs). This is a normal single assembly with an embedded byte blob - nothing about
+    its PE structure resembles a packed/merged executable.
+  -->
+  <Target Name="EmbedNAudioDll" AfterTargets="ResolveReferences" BeforeTargets="AssignTargetPaths;CoreCompile">
+    <ItemGroup>
+      <EmbeddedResource Include="@(ReferencePath)" Condition="'%(ReferencePath.Filename)' == 'NAudio' And '%(ReferencePath.Extension)' == '.dll'">
+        <LogicalName>NAudio.dll</LogicalName>
+      </EmbeddedResource>
+    </ItemGroup>
+  </Target>
+  <Target Name="RemoveLooseNAudioDll" AfterTargets="Build" Condition="Exists('$(TargetDir)NAudio.dll')">
+    <Delete Files="$(TargetDir)NAudio.dll" />
+  </Target>
+</Project>

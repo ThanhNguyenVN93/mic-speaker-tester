@@ -1,0 +1,15 @@
+# Build outputs
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Fody (auto-generated schema, regenerated on every build)
+FodyWeavers.xsd
+
+# OS noise
+Thumbs.db
+.DS_Store
